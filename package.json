@@ -17,6 +17,6 @@
     ],
     "repo": "official",
     "title": "BME280 Envornmental Sensor",
-    "version": "r2.1.0",
+    "version": "r2.1.1",
     "whatsnew": "First Release"
 }
