@@ -96,9 +96,9 @@ class BME280(i2c.I2C):
 
         ...
 
-        bmp = bme280.BME280(I2C0)
+        bme = bme280.BME280(I2C0)
         
-        temp, hum, pres = bmp.get_values()
+        temp, hum, pres = bme.get_values()
     """
     def __init__(self, drvname, addr=BME280_I2CADDR, clk=400000):
         i2c.I2C.__init__(self,drvname,addr,clk)
@@ -471,4 +471,4 @@ class BME280(i2c.I2C):
         
         """
         r = self.write_read(BME280_REGISTER_CHIPID,1)
-        print(r[0])
+        return r[0]
