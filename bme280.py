@@ -44,16 +44,16 @@ BME280_REGISTER_DIG_T1          = 0x88
 BME280_REGISTER_DIG_T2          = 0x8A
 BME280_REGISTER_DIG_T3          = 0x8C
 
-BME280_REGISTER_DIG_P1          = 0x8E 
-BME280_REGISTER_DIG_P2          = 0x90 
-BME280_REGISTER_DIG_P3          = 0x92 
-BME280_REGISTER_DIG_P4          = 0x94 
-BME280_REGISTER_DIG_P5          = 0x96 
-BME280_REGISTER_DIG_P6          = 0x98 
-BME280_REGISTER_DIG_P7          = 0x9A 
-BME280_REGISTER_DIG_P8          = 0x9C 
-BME280_REGISTER_DIG_P9          = 0x9E 
-                                
+BME280_REGISTER_DIG_P1          = 0x8E
+BME280_REGISTER_DIG_P2          = 0x90
+BME280_REGISTER_DIG_P3          = 0x92
+BME280_REGISTER_DIG_P4          = 0x94
+BME280_REGISTER_DIG_P5          = 0x96
+BME280_REGISTER_DIG_P6          = 0x98
+BME280_REGISTER_DIG_P7          = 0x9A
+BME280_REGISTER_DIG_P8          = 0x9C
+BME280_REGISTER_DIG_P9          = 0x9E
+
 BME280_REGISTER_DIG_H1          = 0xA1
 BME280_REGISTER_DIG_H2          = 0xE1
 BME280_REGISTER_DIG_H3          = 0xE3
@@ -74,6 +74,16 @@ BME280_REGISTER_TEMPDATA        = 0xFA
 BME280_REGISTER_HUMIDDATA       = 0xFD
 
 
+
+@native_c("_bme280_getfast",["csrc/bme280.c"],["VHAL_I2C"],[])
+def bme280_getfast():
+    pass
+
+@native_c("_bme280_setup",["csrc/bme280.c"],["VHAL_I2C"],[])
+def bme280_setup(digs,i2cdrv,addr):
+    pass
+
+
 class BME280(i2c.I2C):
     """
     
@@ -89,7 +99,7 @@ class BME280(i2c.I2C):
     :param addr: Slave address, default 0x76
     :param clk: Clock speed, default 400kHz
 
-    Sensor's calibration data are automatically read on object creation and setup method is called with default parameters. Temperature, 
+    Sensor's calibration data are automatically read on object creation and setup method is called with default parameters. Temperature,
     humidity and pressure values can be easily obtained from the sensor: ::
 
         from bosch.bme280 import bme280
@@ -97,7 +107,7 @@ class BME280(i2c.I2C):
         ...
 
         bme = bme280.BME280(I2C0)
-        
+
         temp, hum, pres = bme.get_values()
     """
     def __init__(self, drvname, addr=BME280_I2CADDR, clk=400000):
@@ -106,28 +116,28 @@ class BME280(i2c.I2C):
             self.start()
         except PeripheralError as e:
             print(e)
-        
-        
+
+
         self._read_coeff()
         self.setup()
 
 
-        
-        
+
+
     def setup(self, mode = 3, os_t = 1, os_h = 1, os_p = 1, t_sb = 6, filter = 1):
         """
 .. method:: setup(mode = 3, os_t = 1, os_h = 1, os_p = 1, t_sb = 6, filter = 1)
-        
+
         This method sets the operating mode and the sampling parameters of the module.
-        
+
         **Parameters**:
-        
-        **mode**: Control the operating mode. Sleep mode is entered by default after power on reset. In sleep 
+
+        **mode**: Control the operating mode. Sleep mode is entered by default after power on reset. In sleep
         mode, no measurement are performed and all registers are accessible.
         In normal mode the sensor cycles between an active measurement period and an inactive standby period.
         In forced mode a single measurement is perfomed in accordance to the selected measurement and filter options,
-        after which the sensor enter in sleep mode. 
-        
+        after which the sensor enter in sleep mode.
+
         ======== =====================
          mode        Operating mode
         ======== =====================
@@ -250,6 +260,11 @@ class BME280(i2c.I2C):
         self.dig_H4 = _tc((dig_H4[0] << 4) | (dig_H4[1] & 0xF))
         self.dig_H5 = _tc((dig_H5[1] << 4) | (dig_H5[0] >> 4))
         self.dig_H6 = _tc(dig_H6[0],8)
+
+        digs = [self.dig_T1,self.dig_T2,self.dig_T3,
+                self.dig_P1,self.dig_P2,self.dig_P3,self.dig_P4,self.dig_P5,self.dig_P6,self.dig_P7,self.dig_P8,self.dig_P9,
+                self.dig_H1,self.dig_H2,self.dig_H3,self.dig_H4,self.dig_H5,self.dig_H6]
+        bme280_setup(digs,self.drvid,self.addr)
 
 
     ##
@@ -435,6 +450,10 @@ class BME280(i2c.I2C):
         adc_p = adc_p >> 4
         
         return (self._calc_temp(adc_t), self._calc_hum(adc_h), self._calc_pres(adc_p))
+
+
+    def get_values_fast(self):
+        return bme280_getfast()
 
 
     def soft_reset(self):
